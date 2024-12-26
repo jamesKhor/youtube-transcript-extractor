@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect x="0" y="0" width="128" height="128" rx="16" fill="#ffffff"/>
+    
+    <!-- YTCC Text -->
+    <text x="64" y="80" 
+          font-family="Arial Black, sans-serif" 
+          font-size="42" 
+          fill="#ff0000" 
+          text-anchor="middle" 
+          font-weight="bold">YTCC</text>
+</svg> 
