@@ -1,7 +1,7 @@
 # System Files
 .DS_Store
 Thumbs.db
-
+.cursorrules
 # IDE Files
 .idea/
 .vscode/

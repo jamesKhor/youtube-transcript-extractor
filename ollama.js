@@ -57,9 +57,30 @@ class OllamaService {
                 throw new Error(`Model "${modelName}" not found. Please run 'ollama pull ${modelName}' first.`);
             }
 
+            const structuredPrompt = `Please analyze the following transcript and provide a structured summary in Markdown format with these sections:
+
+1. ONE SENTENCE SUMMARY:
+Create a single, 20-word sentence that captures the essence of the content.
+
+2. MAIN POINTS:
+List the 10 most important points, using no more than 15 words per point. Number each point.
+
+3. TAKEAWAYS:
+List 5 key takeaways from the content. Number each takeaway.
+
+Rules:
+- Use only human readable Markdown
+- Use numbered lists, not bullets
+- Do not repeat items between sections
+- Do not start items with the same opening words
+- Keep formatting clean and consistent
+
+Transcript to analyze:
+${transcript}`;
+
             const requestBody = {
                 model: modelName,
-                prompt: `Please provide a concise summary of this transcript:\n\n${transcript}`,
+                prompt: structuredPrompt,
                 stream: false
             };
 
