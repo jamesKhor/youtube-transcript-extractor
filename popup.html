@@ -55,6 +55,26 @@
             color: #666;
             font-style: italic;
         }
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+        #visualizeButton {
+            background-color: #2196F3;
+        }
+        #visualizeButton:hover:not(:disabled) {
+            background-color: #1976D2;
+        }
+        .output-section {
+            display: none;
+        }
+        .output-section.visible {
+            display: block;
+        }
+        #mermaidOutput {
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
     </style>
 </head>
 <body>
@@ -71,9 +91,18 @@
             </select>
         </div>
 
-        <button id="generateSummary">Generate Summary</button>
+        <div class="button-group">
+            <button id="generateSummary">Generate Summary</button>
+            <button id="visualizeButton" disabled>Visualize Summary</button>
+        </div>
         
-        <textarea id="summary" placeholder="Summary will appear here..." readonly></textarea>
+        <div class="output-section" id="summarySection">
+            <textarea id="summary" placeholder="Summary will appear here..." readonly></textarea>
+        </div>
+
+        <div class="output-section" id="mermaidSection">
+            <textarea id="mermaidOutput" placeholder="Mermaid diagram will appear here..." readonly></textarea>
+        </div>
     </div>
     <script src="ollama.js"></script>
     <script src="popup.js"></script>

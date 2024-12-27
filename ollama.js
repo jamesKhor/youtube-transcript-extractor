@@ -152,4 +152,43 @@ ${transcript}`;
             console.error('Failed to save error log:', error);
         }
     }
+
+    static async generateMermaidDiagram(modelName, summary) {
+        try {
+            const structuredPrompt = `You are an expert at data and concept visualization. Transform the following summary into a Mermaid diagram that visualizes the key concepts and relationships.
+
+Rules:
+- Output ONLY the Mermaid syntax without any code indicators or backticks
+- Create an elaborate and intricate visualization
+- Use visual elements like boxes, arrows, and labels to show relationships
+- Ensure the diagram can stand alone to convey the concepts
+- Use high contrast black and white for diagrams and text
+- Make the visualization simple enough to be useful but complex enough to show relationships
+
+Summary to visualize:
+${summary}
+
+Output the Mermaid syntax followed by a section called VISUAL EXPLANATION with 10-word bullet points explaining how the visualization represents the concepts.`;
+
+            const requestBody = {
+                model: modelName,
+                prompt: structuredPrompt,
+                stream: false
+            };
+
+            const data = await this.makeRequest('/api/generate', {
+                method: 'POST',
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!data || !data.response) {
+                throw new Error('Invalid response format from Ollama API');
+            }
+
+            return data.response;
+        } catch (error) {
+            const errorMessage = this.formatErrorMessage(error, modelName, summary);
+            throw new Error(errorMessage);
+        }
+    }
 } 
