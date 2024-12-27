@@ -1,77 +1,123 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async () => {
+    const generateButton = document.getElementById('generateSummary');
+    const summaryTextArea = document.getElementById('summary');
+    const modelSelect = document.getElementById('modelSelect');
     const videoUrlInput = document.getElementById('videoUrl');
-    const getTranscriptButton = document.getElementById('getTranscript');
-    const transcriptDiv = document.getElementById('transcript');
-    const copyButton = document.getElementById('copyTranscript');
-    const summarizeButton = document.getElementById('summarize');
+    let isGenerating = false;
 
-    // Get current tab's URL when popup opens
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-        if (tabs[0] && tabs[0].url && tabs[0].url.includes('youtube.com/watch')) {
+    // Function to update UI state
+    function updateUIState(generating) {
+        isGenerating = generating;
+        generateButton.disabled = generating;
+        modelSelect.disabled = generating;
+        videoUrlInput.disabled = generating;
+        generateButton.textContent = generating ? 'Generating...' : 'Generate Summary';
+        if (generating) {
+            summaryTextArea.value = 'Connecting to Ollama...';
+        }
+    }
+
+    // Function to update status message
+    function updateStatus(message) {
+        summaryTextArea.value = message;
+    }
+
+    // Get current YouTube URL
+    try {
+        const tabs = await chrome.tabs.query({active: true, currentWindow: true});
+        if (tabs[0]?.url?.includes('youtube.com/watch')) {
             videoUrlInput.value = tabs[0].url;
         }
-    });
+    } catch (error) {
+        console.error('Error getting current tab:', error);
+    }
 
-    getTranscriptButton.addEventListener('click', async () => {
-        const url = videoUrlInput.value;
-        if (!url) {
-            transcriptDiv.textContent = 'Please enter a YouTube URL';
-            return;
-        }
-
-        if (!url.includes('youtube.com/watch')) {
-            transcriptDiv.textContent = 'Please enter a valid YouTube video URL';
-            return;
-        }
-
-        transcriptDiv.textContent = 'Loading transcript...';
-        
-        // Send message to background script
-        chrome.runtime.sendMessage({
-            action: 'getTranscript',
-            url: url
-        }, response => {
-            if (chrome.runtime.lastError) {
-                transcriptDiv.textContent = 'Error: ' + chrome.runtime.lastError.message;
-                return;
-            }
-
-            if (response.error) {
-                transcriptDiv.textContent = 'Error: ' + response.error;
-            } else if (response.transcript) {
-                transcriptDiv.textContent = response.transcript;
-            } else {
-                transcriptDiv.textContent = 'Could not find transcript';
-            }
+    // Load available models
+    try {
+        updateStatus('Loading available models...');
+        const response = await chrome.runtime.sendMessage({
+            action: 'ollamaApi',
+            endpoint: '/api/tags'
         });
-    });
 
-    copyButton.addEventListener('click', () => {
-        const text = transcriptDiv.textContent;
-        if (text && text !== 'Loading transcript...' && !text.startsWith('Error:')) {
-            navigator.clipboard.writeText(text).then(() => {
-                const originalText = copyButton.textContent;
-                copyButton.textContent = 'Copied!';
-                setTimeout(() => {
-                    copyButton.textContent = originalText;
-                }, 2000);
-            });
+        if (response.error) {
+            updateStatus('Error loading models: ' + response.error);
+            return;
         }
-    });
 
-    summarizeButton.addEventListener('click', async () => {
-        const text = transcriptDiv.textContent;
-        if (!text || text === 'Loading transcript...' || text.startsWith('Error:')) {
-            transcriptDiv.textContent = 'No valid transcript to summarize';
+        const models = response.data.models || [];
+        if (models.length === 0) {
+            updateStatus('No models found. Please install at least one model using the Ollama CLI (e.g., "ollama pull mistral")');
+            generateButton.disabled = true;
+            return;
+        }
+
+        modelSelect.innerHTML = models
+            .map(model => `<option value="${model.name}">${model.name}</option>`)
+            .join('');
+        
+        summaryTextArea.value = 'Ready to generate summary. Click the button above to start.';
+        generateButton.disabled = false;
+    } catch (error) {
+        updateStatus('Failed to load models. Please ensure Ollama is running.');
+        generateButton.disabled = true;
+    }
+
+    generateButton.addEventListener('click', async () => {
+        if (isGenerating) return;
+        
+        const selectedModel = modelSelect.value;
+        if (!selectedModel) {
+            updateStatus('Please select a model first');
             return;
         }
 
         try {
-            // Here you would typically send the transcript to your AI service
-            // For now, we'll just show a placeholder message
-            transcriptDiv.textContent = 'AI summarization will be implemented here';
+            updateUIState(true);
+            updateStatus('Getting video transcript...');
+
+            // Get transcript
+            const transcriptResponse = await chrome.runtime.sendMessage({
+                action: 'getTranscript',
+                url: videoUrlInput.value // Pass the URL if provided
+            });
+
+            if (transcriptResponse.error) {
+                throw new Error(transcriptResponse.error);
+            }
+
+            if (!transcriptResponse.transcript) {
+                throw new Error('No transcript found for this video');
+            }
+
+            updateStatus('Generating summary...\nThis may take up to 30 seconds.');
+
+            // Generate summary
+            const summaryResponse = await chrome.runtime.sendMessage({
+                action: 'ollamaApi',
+                endpoint: '/api/generate',
+                method: 'POST',
+                body: JSON.stringify({
+                    model: selectedModel,
+                    prompt: `Please provide a concise summary of this transcript:\n\n${transcriptResponse.transcript}`,
+                    stream: false,
+                    options: {
+                        temperature: 0.7,
+                        top_p: 0.9,
+                        max_tokens: 500
+                    }
+                })
+            });
+
+            if (summaryResponse.error) {
+                throw new Error(summaryResponse.error);
+            }
+
+            summaryTextArea.value = summaryResponse.data.response;
         } catch (error) {
-            transcriptDiv.textContent = 'Error during summarization: ' + error.message;
+            updateStatus('Error: ' + error.message);
+        } finally {
+            updateUIState(false);
         }
     });
 }); 

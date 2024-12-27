@@ -4,58 +4,79 @@
     <title>YouTube Transcript Extractor</title>
     <style>
         body {
-            width: 400px;
+            width: 500px;
             padding: 15px;
             font-family: Arial, sans-serif;
         }
         .container {
             display: flex;
             flex-direction: column;
+            gap: 15px;
+        }
+        .input-section {
+            display: flex;
+            align-items: center;
             gap: 10px;
         }
-        input[type="text"] {
-            width: 100%;
+        .input-section label {
+            min-width: 100px;
+        }
+        select, input {
             padding: 8px;
-            border: 1px solid #ccc;
             border-radius: 4px;
+            border: 1px solid #ccc;
+            flex-grow: 1;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            resize: vertical;
+            font-family: inherit;
         }
         button {
             padding: 8px 16px;
-            background-color: #ff0000;
+            background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
         }
-        button:hover {
-            background-color: #cc0000;
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
         }
-        #transcript {
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-top: 10px;
-            white-space: pre-wrap;
+        button:hover:not(:disabled) {
+            background-color: #45a049;
         }
-        .actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
+        .status {
+            color: #666;
+            font-style: italic;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>YouTube Transcript Extractor</h2>
-        <input type="text" id="videoUrl" placeholder="Enter YouTube URL or use current video">
-        <button id="getTranscript">Get Transcript</button>
-        <div id="transcript"></div>
-        <div class="actions">
-            <button id="copyTranscript">Copy Transcript</button>
-            <button id="summarize">Summarize</button>
+        <div class="input-section">
+            <label for="videoUrl">YouTube URL:</label>
+            <input type="text" id="videoUrl" placeholder="Current video URL will be used if empty">
         </div>
+
+        <div class="input-section">
+            <label for="modelSelect">Ollama Model:</label>
+            <select id="modelSelect">
+                <option value="">Loading models...</option>
+            </select>
+        </div>
+
+        <button id="generateSummary">Generate Summary</button>
+        
+        <textarea id="summary" placeholder="Summary will appear here..." readonly></textarea>
     </div>
+    <script src="ollama.js"></script>
     <script src="popup.js"></script>
 </body>
+</html> 
 </html> 
