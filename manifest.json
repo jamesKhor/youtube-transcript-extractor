@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
     "name": "YouTube Transcript Extractor",
-    "version": "1.0.0",
-    "description": "Extract and summarize YouTube video transcripts. Easily copy captions from any YouTube video and prepare them for AI summarization.",
+    "version": "1.0",
+    "description": "Extract and summarize YouTube video transcripts using Ollama",
     "author": "James Khor",
     "permissions": [
         "activeTab",
@@ -12,8 +12,19 @@
     ],
     "host_permissions": [
         "https://www.youtube.com/*",
-        "https://*.youtube.com/*"
+        "https://*.youtube.com/*",
+        "http://localhost:11434/*",
+        "http://127.0.0.1:11434/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
     ],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' http://localhost:11434 http://127.0.0.1:11434"
+    },
+    "web_accessible_resources": [{
+        "resources": ["ollama.js"],
+        "matches": ["<all_urls>"]
+    }],
     "action": {
         "default_popup": "popup.html",
         "default_icon": {
@@ -29,7 +40,8 @@
         "128": "icons/icon128.png"
     },
     "background": {
-        "service_worker": "background.js"
+        "service_worker": "background.js",
+        "type": "module"
     },
     "minimum_chrome_version": "88",
     "short_name": "YTCC",
