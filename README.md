@@ -36,7 +36,7 @@ A Microsoft Edge extension that allows you to extract transcripts from YouTube v
 
 ## Requirements
 
-- Microsoft Edge browser (version 88 or higher)
+- Microsoft Edge, and Chrome browser
 - YouTube videos must have closed captions/subtitles available
 
 ## Privacy Policy
