@@ -38,6 +38,88 @@ A Microsoft Edge extension that allows you to extract transcripts from YouTube v
 
 - Microsoft Edge, and Chrome browser
 - YouTube videos must have closed captions/subtitles available
+- [Ollama](https://ollama.ai) installed for AI summarization features
+
+## Ollama Setup
+
+For the AI summarization features to work, Ollama needs to be running with CORS enabled. Follow these platform-specific instructions:
+
+### Linux/macOS
+
+1. Start Ollama with CORS enabled:
+```bash
+OLLAMA_ORIGINS=* ollama serve
+```
+
+2. To make it permanent, add to your `~/.bashrc` or `~/.zshrc`:
+```bash
+export OLLAMA_ORIGINS=*
+```
+Then restart your terminal or run:
+```bash
+source ~/.bashrc  # or source ~/.zshrc
+```
+
+### Windows
+
+1. Using PowerShell, set the environment variable and start Ollama:
+```powershell
+$env:OLLAMA_ORIGINS="*"
+ollama serve
+```
+
+2. To make it permanent (PowerShell as Administrator):
+```powershell
+[System.Environment]::SetEnvironmentVariable('OLLAMA_ORIGINS', '*', [System.EnvironmentVariableTarget]::User)
+```
+Then restart PowerShell.
+
+### Docker
+
+Run Ollama in a Docker container with CORS enabled:
+```bash
+docker run -d \
+  --name ollama \
+  -v ollama:/root/.ollama \
+  -p 11434:11434 \
+  -e OLLAMA_ORIGINS="*" \
+  ollama/ollama
+```
+
+### Verifying the Setup
+
+1. After starting Ollama, verify it's running by visiting:
+```
+http://localhost:11434/api/tags
+```
+
+2. You should see a JSON response listing available models.
+
+### Troubleshooting Ollama
+
+If the extension can't connect to Ollama:
+
+1. Verify Ollama is running:
+```bash
+curl http://localhost:11434/api/tags
+```
+
+2. Check if CORS is enabled:
+   - Look for the OLLAMA_ORIGINS environment variable
+   - Restart Ollama after changing environment variables
+   - Check your firewall settings
+
+3. Common issues:
+   - "Failed to fetch" error: Ollama not running or CORS not enabled
+   - "Model not found": Run `ollama pull modelname` first
+   - Connection refused: Port 11434 blocked by firewall
+
+### Security Note
+
+Setting `OLLAMA_ORIGINS=*` allows requests from any origin. For production use:
+- Limit OLLAMA_ORIGINS to specific trusted domains
+- Consider implementing additional security measures
+- Only use * for development/testing purposes
 
 ## Privacy Policy
 
